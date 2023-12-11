@@ -20,12 +20,6 @@ original_height, original_width = img.shape[:2]
 
 resized_image = cv2.resize(img, (target_width, target_height))
 
-cv2.imshow("Resized Image", resized_image)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-
-
-
 # 판단한 클래스 별로 OpenCV로 표현
 class_ids = []
 confidence_scores = []
@@ -52,4 +46,7 @@ for i in range(len(boxes)):
             cv2.rectangle(img, (x, y), (x + w, y + h), color, 2)
         cv2.putText(img, label, (x, y - 10), font, 1, color, 2)
 
+cv2.imshow("Resized Image", resized_image)
 cv2.imshow("Objects", img)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
