@@ -1,26 +1,28 @@
 import cv2
 import numpy as np
+import os
+import sys
 
-# 사진 넣기
-# display resolution: FHD
-target_width = 1920	
-target_height = 1080
+# 상수 정의
+TARGET_WIDTH = 1920	
+TARGET_HEIGHT = 1080
+CONFIDENCE_THRESHOLD = 0.2
+NMS_THRESHOLD = 0.5
 
+# 이미지 경로
 image_name = input('enter your image name: ')
+image_path = f'./image/{image_name}.jpg'
 
-image_path = './image/'+image_name+'.jpg'
+# 이미지 파일 확인
+if not os.path.exists(image_path):
+    sys.exit(f"Error: Unable to find the image at {image_path}")
 
+# 이미지 로드 및 크기 조정
 img = cv2.imread(image_path)
+resized_image = cv2.resize(img, (TARGET_WIDTH, TARGET_HEIGHT))
+original_height, original_width, original_channel = img.shape
 
-if img is None:
-	print("\nEroor: File not found or unable to load.")
-	exit()
-
-original_height, original_width, original_channal = img.shape
-
-resized_image = cv2.resize(img, (target_width, target_height))
-
-# 이미지로부터 blob 얻기
+# blob 얻기
 blob = cv2.dnn.blobFromImage(resized_image, 1 / 255, (416, 416), (0, 0, 0), swapRB=True, crop=False)
 print('blob shape:', blob.shape)
 
@@ -37,7 +39,7 @@ layer_names = net.getLayerNames()
 output_layers = [layer_names[i - 1] for i in net.getUnconnectedOutLayers()]
 print('output layers:', output_layers)
 
-# 겍체 탐지
+# 객체 탐지
 net.setInput(blob)
 outs = net.forward(output_layers)
 
@@ -47,14 +49,12 @@ confidence_scores = []
 boxes = []
 
 for out in outs: # for each detected object
-
-    for detection in out: # for each bounding box
-
+    for i, detection in enumerate(out): # for each bounding box
         scores = detection[5:] # scores (confidence) for all classes
         class_id = np.argmax(scores) # class id with the maximum score (confidence)
         confidence = scores[class_id] # the maximum score
 
-        if confidence > 0.5:
+        if confidence > CONFIDENCE_THRESHOLD:
             # 신뢰도 기준으로 필터링 및 바운딩 박스 좌표 계산
             center_x = int(detection[0] * original_width)
             center_y = int(detection[1] * original_height)
@@ -69,32 +69,40 @@ for out in outs: # for each detected object
             confidence_scores.append(float(confidence))
             class_ids.append(class_id)
 
-
-# 판단한 클래스 별로 OpenCV로 표현
-class_ids = []
-confidence_scores = []
-boxes = []
+# 판단한 클래스 별로 OpenCV 표현
 colors = np.random.uniform(0, 255, size=(len(classes), 3))
 font = cv2.FONT_HERSHEY_PLAIN
 
-# load pre-trained yolo model or whatever from configuration and weight files
-# classify the image
+# 탐지한 이미지를 저장할 폴더 생성
+output_folder = "detected_objects"
+os.makedirs(output_folder, exist_ok=True)
 
-indices = cv2.dnn.NMSBoxes(boxes, confidence_scores, 0.5, 0.4)
-for i in range(len(boxes)):
-    if i in indices:
+def save_and_display_objects(image, boxes, indices, classes, confidence_scores, colors, output_folder):
+    cnt = 0
+    for i in indices:
         x, y, w, h = boxes[i]
+        roi = image[y:y+h, x:x+w]
         label = str(classes[class_ids[i]])
-        print(f"class {label} detected at {x}, {y}, {w}, {h}")
         color = colors[i]
-        if label == "dog":
-            cv2.rectangle(img, (x, y), (x + w, y + h), color, 4)
-            cv2.putText(img, label, (x, y - 10), font, 1, color, 2)
-        else:
-            cv2.rectangle(img, (x, y), (x + w, y + h), color, 2)
-        cv2.putText(img, label, (x, y - 10), font, 1, color, 2)
+        cnt += 1
+        
+        # 탐지한 이미지를 새 이미지로 저장
+        output_path = f"{output_folder}/{label}_{cnt}.png"
+        print(f"Object {label}_{cnt} saved at: {output_path}")
+        cv2.imwrite(output_path, roi)
 
-cv2.imshow("Resized Image", resized_image)
+        cv2.rectangle(image, (x, y), (x + w, y + h), color, 4)
+        cv2.putText(image, label, (x, y - 10), font, 1, color, 2)
+
+        # 객체의 정보를 파일에 기록
+        log_file_path = "object_detection_log.txt"
+        with open(log_file_path, "a") as log_file:
+            log_file.write(f"Object {cnt}: Class: {label}, Confidence: {confidence_scores[i]:.2f}, Coordinates: ({x}, {y}, {w}, {h})\n")
+
+# 객체 탐지 및 표시
+indices = cv2.dnn.NMSBoxes(boxes, confidence_scores, NMS_THRESHOLD, 0.4)
+save_and_display_objects(img, boxes, indices, classes, confidence_scores, colors, output_folder)
+
 cv2.imshow("Objects", img)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
