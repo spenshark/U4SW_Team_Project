@@ -22,9 +22,9 @@ numpy (1.26.2)
 **Detects animal objects from input images, displays detected objects in images, cuts only the displayed objects and stores them separately in a new folder.**
 **And create a new text file that records the class, confidence, and coordinates of an object**
 ![Displaying_Objects](./image/result.PNG)  
-Find an animal object in an image and display it in the image
-![Detected_Objects](./detected_objects/bird_1.png) 
-Save only detected animal objects separately
+Find an animal object in an image and display it in the image  
+![Detected_Objects](./detected_objects/bird_1.png)  
+Save only detected animal objects separately  
 
 ---
 ## References
