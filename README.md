@@ -13,7 +13,7 @@ numpy (1.26.2)
 
 ---
 ## How Do it?
-1. Download [yolov.weights](https://pjreddie.com/media/files/yolov3.weights, "yolov.weights download") ==> https://pjreddie.com/media/files/yolov3.weights 
+1. Download **yolov.weights** => https://pjreddie.com/media/files/yolov3.weights 
 2. Insert the desired image in the Image folder  
 3. Enter the name of the image you saved in the console window  
 
@@ -29,3 +29,4 @@ Save only detected animal objects separately
 ---
 ## References
 https://github.com/opencv/opencv  
+https://pixabay.com/ko/  
