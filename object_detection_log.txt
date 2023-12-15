@@ -1,0 +1,2 @@
+Object 1: Class: bird, Confidence: 1.00, Coordinates: (520, 308, 190, 244)
+Object 1: Class: bird, Confidence: 1.00, Coordinates: (520, 308, 190, 244)
